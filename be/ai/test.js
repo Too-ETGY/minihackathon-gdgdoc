@@ -4,8 +4,8 @@ const { checkHazardPassability } = require("./index");
 // ── Mock hazard (as your friends' collision system would send) ────────────────
 const hazard = {
   type: "broken_sidewalk",
-  description: "Large crack with uneven surface, approximately 30cm height difference",
-  severity: 4,
+  description: "small cracks no the sides, but wide sidewalks, not too bad",
+  severity: 2,
   radius: 15,
 };
 
