@@ -99,7 +99,7 @@ export default function NavbarForSearch({ onLocationSelect, onModeChange, curren
         </div>
       </div>
 
-      <div className="flex gap-3 justify-center">
+      <div className="flex gap-3 justify-start">
         <button onClick={handleUseCurrentLocation} className={`px-6 py-3 rounded-xl font-medium transition-all shadow-md ${currentMode === "explore" ? "bg-black text-white" : "bg-white text-black hover:bg-gray-50"}`}>
           Kerusakan Jalan
         </button>
