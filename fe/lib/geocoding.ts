@@ -1,4 +1,7 @@
 // Nominatim API base URL (OpenStreetMap's geocoding service)
+
+import { Place, Location } from "@/types";
+
 const NOMINATIM_BASE_URL = "https://nominatim.openstreetmap.org";
 
 export interface GeocodingResult {
@@ -81,4 +84,28 @@ export function debounce<T extends (...args: any[]) => any>(func: T, wait: numbe
     }
     timeout = setTimeout(later, wait);
   };
+}
+
+export function getCurrentPosition(): Promise<Location> {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      reject(new Error('Geolocation not supported'));
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        resolve({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude
+        });
+      },
+      (error) => reject(error),
+      {
+        enableHighAccuracy: true,
+        timeout: 5000,
+        maximumAge: 0
+      }
+    );
+  });
 }

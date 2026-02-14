@@ -6,6 +6,14 @@ import { ReportFormData, DamageType } from "@/types/report";
 import { searchAddress, reverseGeocode, debounce, GeocodingResult } from "@/lib/geocoding";
 import NavbarForSearch from "@/components/layout/Navbar";
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+
+interface Category {
+  id: number;
+  name: string;
+  icon_url: string | null;
+}
+
 // Dynamic import for map picker
 const MapPicker = dynamic(() => import("@/components/map/MapPicker"), {
   ssr: false,
@@ -22,13 +30,6 @@ interface ReportModalProps {
   onSubmit: (data: ReportFormData) => Promise<void>;
 }
 
-const DAMAGE_TYPES: { value: DamageType; label: string }[] = [
-  { value: "crack", label: "Retak" },
-  { value: "hole", label: "Berlubang" },
-  { value: "severe", label: "Rusak Berat" },
-  { value: "other", label: "Lainnya" },
-];
-
 export default function ReportModal({ isOpen, onClose, onSubmit }: ReportModalProps) {
   const [formData, setFormData] = useState<ReportFormData>({
     latitude: null,
@@ -40,6 +41,10 @@ export default function ReportModal({ isOpen, onClose, onSubmit }: ReportModalPr
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Categories from API
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isCategoriesLoading, setIsCategoriesLoading] = useState(false);
+
   // Address search state
   const [searchResults, setSearchResults] = useState<GeocodingResult[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -47,6 +52,29 @@ export default function ReportModal({ isOpen, onClose, onSubmit }: ReportModalPr
   const [mapCenter, setMapCenter] = useState<[number, number]>([-6.2088, 106.8456]);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [currentMode, setCurrentMode] = useState<"explore" | "damaged" | "project">("explore");
+
+  // Fetch categories from API
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const fetchCategories = async () => {
+      setIsCategoriesLoading(true);
+      try {
+        const response = await fetch(`${API_BASE_URL}/categories`);
+        if (!response.ok) throw new Error("Failed to fetch categories");
+        const result = await response.json();
+        if (result.status && result.data) {
+          setCategories(result.data);
+        }
+      } catch (err) {
+        console.error("Error fetching categories:", err);
+      } finally {
+        setIsCategoriesLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, [isOpen]);
 
   // Debounced search function
   const debouncedSearch = useCallback(
@@ -265,11 +293,11 @@ export default function ReportModal({ isOpen, onClose, onSubmit }: ReportModalPr
                 }}
               >
                 <option value="" disabled hidden>
-                  Jenis Kerusakan
+                  {isCategoriesLoading ? "Memuat..." : "Jenis Kerusakan"}
                 </option>
-                {DAMAGE_TYPES.map((type) => (
-                  <option key={type.value} value={type.value}>
-                    {type.label}
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.name}>
+                    {cat.name}
                   </option>
                 ))}
               </select>
@@ -284,7 +312,7 @@ export default function ReportModal({ isOpen, onClose, onSubmit }: ReportModalPr
                 id="description"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Contoh"
+                placeholder="Jelaskan deskripsi kerusakan (opsional)"
                 rows={5}
                 className="w-full px-4 py-3 bg-white text-gray-900 rounded-lg outline-none transition-all resize-none placeholder:text-gray-400 flex-1"
               />
