@@ -6,7 +6,10 @@ import ReportModal from "@/components/report/ReportModal";
 import { DamageMarker, ReportFormData } from "@/types/report";
 import { submitDamageReport, fetchDamageReports } from "@/lib/reportApi";
 import NavbarForSearch from "@/components/layout/Navbar";
+import RoutingNavbar from "@/components/layout/RoutingNavbar";
 import { Location } from "@/types";
+import { getRoute, RouteResponse } from "@/lib/routingApi";
+import { getCurrentPosition } from "@/types/geocoding";
 
 export default function MapPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -18,20 +21,14 @@ export default function MapPage() {
   } | null>(null);
   
   const [currentMode, setCurrentMode] = useState<'explore' | 'damaged' | 'project'>('explore');
-  const [selectedLocation, setSelectedLocation] = useState<{
-    lat: number;
-    lng: number;
-    name: string;
-  } | null>(null);
-  
-  const [navigationRoute, setNavigationRoute] = useState<{
-    from: Location;
-    to: Location;
-    destinationName: string;
-  } | null>(null);
+  const [isRoutingMode, setIsRoutingMode] = useState(false);
+  const [routeData, setRouteData] = useState<RouteResponse | null>(null);
+  const [destination, setDestination] = useState<{ location: Location; name: string } | null>(null);
+  const [currentLocation, setCurrentLocation] = useState<Location | null>(null);
 
   useEffect(() => {
     loadMarkers();
+    loadCurrentLocation();
   }, []);
 
   const loadMarkers = async () => {
@@ -43,6 +40,15 @@ export default function MapPage() {
       console.error("Error loading markers:", error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadCurrentLocation = async () => {
+    try {
+      const location = await getCurrentPosition();
+      setCurrentLocation(location);
+    } catch (error) {
+      console.error("Cannot get current location:", error);
     }
   };
 
@@ -70,12 +76,38 @@ export default function MapPage() {
     }
   }, []);
 
-  const handleLocationSelect = (location: Location, name: string) => {
-    setSelectedLocation({ ...location, name });
+  const handleDestinationSelect = async (location: Location, name: string) => {
+    setDestination({ location, name });
+    setIsRoutingMode(true);
+    
+    if (currentLocation) {
+      try {
+        const route = await getRoute(currentLocation, location);
+        setRouteData(route);
+      } catch (error) {
+        console.error("Routing error:", error);
+        setNotification({
+          type: "error",
+          message: "Gagal membuat rute. Coba lagi.",
+        });
+        setTimeout(() => setNotification(null), 5000);
+      }
+    }
   };
 
-  const handleNavigateRequest = (from: Location, to: Location, destinationName: string) => {
-    setNavigationRoute({ from, to, destinationName });
+  const handleRouteRequest = async (origin: Location, dest: Location) => {
+    try {
+      const route = await getRoute(origin, dest);
+      setRouteData(route);
+    } catch (error) {
+      console.error("Routing error:", error);
+    }
+  };
+
+  const handleCloseRouting = () => {
+    setIsRoutingMode(false);
+    setRouteData(null);
+    setDestination(null);
   };
 
   const handleModeChange = (mode: 'explore' | 'damaged' | 'project') => {
@@ -84,12 +116,21 @@ export default function MapPage() {
 
   return (
     <div className="relative w-full h-screen">
-      <NavbarForSearch
-        onLocationSelect={handleLocationSelect}
-        onNavigateRequest={handleNavigateRequest}
-        onModeChange={handleModeChange}
-        currentMode={currentMode}
-      />
+      {!isRoutingMode ? (
+        <NavbarForSearch
+          onDestinationSelect={handleDestinationSelect}
+          onModeChange={handleModeChange}
+          currentMode={currentMode}
+        />
+      ) : (
+        <RoutingNavbar
+          initialOrigin={currentLocation}
+          initialDestination={destination?.location || null}
+          destinationName={destination?.name || ''}
+          onRouteRequest={handleRouteRequest}
+          onClose={handleCloseRouting}
+        />
+      )}
 
       {isLoading && (
         <div className="absolute top-32 left-1/2 -translate-x-1/2 z-[1000] bg-white px-4 py-2 rounded-lg shadow-lg">
@@ -122,6 +163,8 @@ export default function MapPage() {
       <MapDynamic 
         markers={markers} 
         onReportClick={() => setIsModalOpen(true)}
+        // routeData={routeData}
+        // currentMode={currentMode}
       />
 
       <ReportModal 

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
+import { useState, useCallback, useEffect } from "react";
+import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from "react-leaflet";
 import { Icon, LatLng } from "leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -36,6 +36,20 @@ function LocationMarker({ onLocationSelect }: { onLocationSelect: (lat: number, 
   return position === null ? null : <Marker position={position} icon={selectedIcon} />;
 }
 
+// Component to update map center dynamically
+function MapCenterUpdater({ center }: { center: [number, number] }) {
+  const map = useMap();
+
+  useEffect(() => {
+    map.setView(center, map.getZoom(), {
+      animate: true,
+      duration: 1,
+    });
+  }, [center, map]);
+
+  return null;
+}
+
 export default function MapPicker({
   onLocationSelect,
   center = [-6.2088, 106.8456], // Default: Jakarta
@@ -49,6 +63,7 @@ export default function MapPicker({
       <MapContainer center={center} zoom={zoom} className="w-full h-full" zoomControl={true}>
         <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
         <LocationMarker onLocationSelect={onLocationSelect} />
+        <MapCenterUpdater center={center} />
       </MapContainer>
     </div>
   );
