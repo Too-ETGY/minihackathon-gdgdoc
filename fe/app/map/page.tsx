@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import MapDynamic from "@/components/map/MapDynamic";
 import ReportModal from "@/components/report/ReportModal";
+import NavbarForSearch from "@/components/layout/Navbar";
 import { DamageMarker, ReportFormData } from "@/types/report";
 import { submitDamageReport, fetchDamageReports } from "@/lib/reportApi";
 
@@ -16,6 +17,17 @@ export default function MapPage() {
   } | null>(null);
 
   // Fetch existing damage reports on mount
+  useEffect(() => {
+    loadMarkers();
+  }, []);
+
+  const [currentMode, setCurrentMode] = useState<'explore' | 'damaged' | 'project'>('explore');
+  const [selectedLocation, setSelectedLocation] = useState<{
+    lat: number;
+    lng: number;
+    name: string;
+  } | null>(null);
+
   useEffect(() => {
     loadMarkers();
   }, []);
@@ -60,8 +72,22 @@ export default function MapPage() {
     }
   }, []);
 
+    const handleLocationSelect = (location: { lat: number; lng: number }, name: string) => {
+    setSelectedLocation({ ...location, name });
+  };
+
+  const handleModeChange = (mode: 'explore' | 'damaged' | 'project') => {
+    setCurrentMode(mode);
+  };
+
   return (
     <div className="relative w-full h-screen">
+      <NavbarForSearch
+        onLocationSelect={handleLocationSelect}
+        onModeChange={handleModeChange}
+        currentMode={currentMode}
+      />
+
       {/* Loading State */}
       {isLoading && (
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] bg-white px-4 py-2 rounded-lg shadow-lg">

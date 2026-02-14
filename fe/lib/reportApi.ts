@@ -8,9 +8,9 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/a
 export async function submitDamageReport(data: ReportFormData): Promise<void> {
   // Convert image to base64 for submission
   let imageBase64 = "";
-  if (data.image) {
-    imageBase64 = await fileToBase64(data.image);
-  }
+  // if (data.image) {
+  //   imageBase64 = await fileToBase64(data.image);
+  // }
 
   const payload = {
     latitude: data.latitude,
