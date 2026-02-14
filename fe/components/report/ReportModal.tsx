@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import { ReportFormData, DamageType } from "@/types/report";
 
 // Dynamic import for map picker
-const MapPicker = dynamic(() => import("./MapPicker"), {
+const MapPicker = dynamic(() => import("@/components/map/MapPicker"), {
   ssr: false,
   loading: () => (
     <div className="w-full h-full flex items-center justify-center bg-gray-100">
@@ -97,9 +97,9 @@ export default function ReportModal({ isOpen, onClose, onSubmit }: ReportModalPr
       {/* Layout Container */}
       <div className="flex h-full">
         {/* Left Sidebar - Dark with form */}
-        <div className="w-80 bg-gradient-to-b from-gray-900 to-black flex flex-col">
+        <div className="w-80 bg-gradient-to-b from-gray-900 to-black flex flex-col ml-4 my-4 rounded-lg">
           {/* Form */}
-          <form onSubmit={handleSubmit} className="flex-1 flex flex-col p-6 space-y-5 overflow-y-hidden ml-10">
+          <form onSubmit={handleSubmit} className="flex-1 flex flex-col p-6 space-y-5 overflow-y-hidden ">
             {/* Error Message */}
             {error && <div className="p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-200 text-sm">{error}</div>}
 
@@ -112,7 +112,7 @@ export default function ReportModal({ isOpen, onClose, onSubmit }: ReportModalPr
             </div>
 
             {/* Tempat Field */}
-            <div className="space-y-2">
+            {/* <div className="space-y-2">
               <label htmlFor="locationDetail" className="block text-sm font-medium text-white">
                 Tempat
               </label>
@@ -124,7 +124,7 @@ export default function ReportModal({ isOpen, onClose, onSubmit }: ReportModalPr
                 placeholder="Masukkan Tempat"
                 className="w-full px-4 py-3 bg-white text-gray-900 rounded-lg outline-none transition-all placeholder:text-gray-400"
               />
-            </div>
+            </div> */}
 
             {/* Jenis Kerusakan */}
             <div className="space-y-2">
@@ -175,8 +175,12 @@ export default function ReportModal({ isOpen, onClose, onSubmit }: ReportModalPr
             )}
 
             {/* Submit Button */}
-            <div className="pt-2">
-              <button type="submit" disabled={isSubmitting} className="w-full px-6 py-3 bg-white text-black rounded-lg hover:bg-gray-100 transition-all font-semibold disabled:bg-gray-300 disabled:cursor-not-allowed shadow-lg">
+            <div className="pt-2 flex justify-end">
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="cursor-pointer w-[120px] px-6 py-3 text-center bg-white text-black rounded-lg hover:bg-gray-100 transition-all font-semibold disabled:bg-gray-300 disabled:cursor-not-allowed shadow-lg"
+              >
                 {isSubmitting ? "Memposting..." : "Posting"}
               </button>
             </div>

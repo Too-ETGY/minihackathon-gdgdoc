@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import { DamageMarker } from "@/types/report";
 
 // Dynamic import to avoid SSR issues with Leaflet
-const MapView = dynamic(() => import("./MapView"), {
+const MapView = dynamic(() => import("@/components/map/MapView"), {
   ssr: false,
   loading: () => (
     <div className="w-full h-full flex items-center justify-center bg-gray-100">
