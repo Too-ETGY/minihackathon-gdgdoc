@@ -5,6 +5,7 @@ import MapDynamic from "@/components/map/MapDynamic";
 import ReportModal from "@/components/report/ReportModal";
 import { DamageMarker, ReportFormData } from "@/types/report";
 import { submitDamageReport, fetchDamageReports } from "@/lib/reportApi";
+import NavbarForSearch from "@/components/layout/Navbar";
 
 export default function MapPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -14,8 +15,14 @@ export default function MapPage() {
     type: "success" | "error";
     message: string;
   } | null>(null);
+  
+  const [currentMode, setCurrentMode] = useState<'explore' | 'damaged' | 'project'>('explore');
+  const [selectedLocation, setSelectedLocation] = useState<{
+    lat: number;
+    lng: number;
+    name: string;
+  } | null>(null);
 
-  // Fetch existing damage reports on mount
   useEffect(() => {
     loadMarkers();
   }, []);
@@ -36,16 +43,13 @@ export default function MapPage() {
     try {
       await submitDamageReport(data);
 
-      // Show success notification
       setNotification({
         type: "success",
         message: "Laporan berhasil dikirim! Terima kasih atas kontribusi Anda.",
       });
 
-      // Reload markers to show the new report
       await loadMarkers();
 
-      // Auto-hide notification after 5 seconds
       setTimeout(() => setNotification(null), 5000);
     } catch (error) {
       setNotification({
@@ -53,25 +57,36 @@ export default function MapPage() {
         message: error instanceof Error ? error.message : "Gagal mengirim laporan",
       });
 
-      // Auto-hide error after 5 seconds
       setTimeout(() => setNotification(null), 5000);
 
       throw error;
     }
   }, []);
 
+  const handleLocationSelect = (location: { lat: number; lng: number }, name: string) => {
+    setSelectedLocation({ ...location, name });
+  };
+
+  const handleModeChange = (mode: 'explore' | 'damaged' | 'project') => {
+    setCurrentMode(mode);
+  };
+
   return (
     <div className="relative w-full h-screen">
-      {/* Loading State */}
+      <NavbarForSearch
+        onLocationSelect={handleLocationSelect}
+        onModeChange={handleModeChange}
+        currentMode={currentMode}
+      />
+
       {isLoading && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] bg-white px-4 py-2 rounded-lg shadow-lg">
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-[1000] bg-white px-4 py-2 rounded-lg shadow-lg">
           <p className="text-sm text-gray-600">Memuat peta...</p>
         </div>
       )}
 
-      {/* Notification */}
       {notification && (
-        <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-[3000] px-6 py-4 rounded-lg shadow-2xl max-w-md ${notification.type === "success" ? "bg-green-500 text-white" : "bg-red-500 text-white"}`}>
+        <div className={`fixed top-20 left-1/2 -translate-x-1/2 z-[3000] px-6 py-4 rounded-lg shadow-2xl max-w-md ${notification.type === "success" ? "bg-green-500 text-white" : "bg-red-500 text-white"}`}>
           <div className="flex items-center gap-3">
             {notification.type === "success" ? (
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -92,11 +107,18 @@ export default function MapPage() {
         </div>
       )}
 
-      {/* Map Component */}
-      <MapDynamic markers={markers} onReportClick={() => setIsModalOpen(true)} />
+      <MapDynamic 
+        markers={markers} 
+        onReportClick={() => setIsModalOpen(true)}
+        // selectedLocation={selectedLocation}
+        // currentMode={currentMode}
+      />
 
-      {/* Report Modal */}
-      <ReportModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSubmit={handleSubmit} />
+      <ReportModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        onSubmit={handleSubmit} 
+      />
     </div>
   );
 }
