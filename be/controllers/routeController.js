@@ -9,10 +9,10 @@ exports.prepareGraphHopperPayload = async (req, res) => {
     }
 
     const { data: pointPemberat, error } = await supabase
-      .from('laporan_kerusakan') 
-      .select('latitude, longitude, skor_kerusakan')
-      .order('skor_kerusakan', { ascending: false })
-      .limit(1)
+      .from('report') 
+      .select('location_id, score')
+      .order('score', { ascending: false })
+      .limit(10)
       .single();
 
     if (error && error.code !== 'PGRST116') throw error;
