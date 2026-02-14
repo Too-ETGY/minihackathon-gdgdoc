@@ -2,7 +2,6 @@ export interface DamageReport {
   latitude: number;
   longitude: number;
   locationDetail: string;
-  image: File | null;
   damageType: DamageType;
   description?: string;
   timestamp: Date;
