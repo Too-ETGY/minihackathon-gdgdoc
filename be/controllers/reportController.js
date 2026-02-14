@@ -6,13 +6,21 @@ const reportController = {
     try {
       const { data, error } = await supabase.from("reports").select(`
           *,
-          locations (name)
+          locations (*)
         `);
 
       if (error) throw error;
-      res.status(200).json(data);
+      res.status(200).json({
+        status: true,
+        message: "success",
+        data: data,
+      });
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      res.status(500).json({
+        status: false,
+        message: error.message,
+        data: null,
+      });
     }
   },
 
@@ -52,9 +60,17 @@ const reportController = {
           .eq("id", location_id);
       }
 
-      res.status(201).json(data[0]);
+      res.status(201).json({
+        status: true,
+        message: "success",
+        data: data[0],
+      });
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      res.status(500).json({
+        status: false,
+        message: error.message,
+        data: null,
+      });
     }
   },
 
@@ -65,9 +81,17 @@ const reportController = {
       const { error } = await supabase.from("reports").delete().eq("id", id);
 
       if (error) throw error;
-      res.status(200).json({ message: "Report deleted successfully" });
+      res.status(200).json({
+        status: true,
+        message: "Report deleted successfully",
+        data: null,
+      });
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      res.status(500).json({
+        status: false,
+        message: error.message,
+        data: null,
+      });
     }
   },
 };
