@@ -1,4 +1,5 @@
 const express = require("express");
+const cors = require("cors");
 const supabase = require("./config/db");
 require("dotenv").config();
 
@@ -8,7 +9,7 @@ const reportRoutes = require("./routes/reportRoutes");
 
 const app = express();
 app.use(cors());
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3001;
 
 app.use(express.json());
 

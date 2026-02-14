@@ -174,7 +174,50 @@ export default function ReportModal({ isOpen, onClose, onSubmit }: ReportModalPr
 
     setIsSubmitting(true);
     try {
-      await onSubmit(formData);
+      // 1. Find category_id from selected damageType name
+      const selectedCategory = categories.find((cat) => cat.name === formData.damageType);
+      const categoryId = selectedCategory?.id || null;
+
+      // 2. Create location first
+      const locationRes = await fetch(`${API_BASE_URL}/locations`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          category_id: categoryId,
+          name: formData.locationDetail,
+          description: formData.description || "",
+          lat: formData.latitude,
+          long: formData.longitude,
+        }),
+      });
+
+      if (!locationRes.ok) {
+        const errData = await locationRes.json().catch(() => ({ message: "Gagal membuat lokasi" }));
+        throw new Error(errData.message || "Gagal membuat lokasi");
+      }
+
+      const locationData = await locationRes.json();
+      const locationId = locationData.data?.id;
+
+      if (!locationId) {
+        throw new Error("Lokasi berhasil dibuat tapi ID tidak ditemukan");
+      }
+
+      // 3. Create report linked to the location
+      const reportRes = await fetch(`${API_BASE_URL}/reports`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          location_id: locationId,
+          reason: formData.description || formData.damageType,
+        }),
+      });
+
+      if (!reportRes.ok) {
+        const errData = await reportRes.json().catch(() => ({ message: "Gagal mengirim laporan" }));
+        throw new Error(errData.message || "Gagal mengirim laporan");
+      }
+
       // Reset form
       setFormData({
         latitude: null,
@@ -210,7 +253,7 @@ export default function ReportModal({ isOpen, onClose, onSubmit }: ReportModalPr
     <div className="fixed inset-0 z-[2000]">
       {/* Navbar - positioned at the top with higher z-index */}
       <div className="absolute top-0 left-80 right-0 z-[2002]">
-        <NavbarForSearch onLocationSelect={handleNavbarLocationSelect} onModeChange={setCurrentMode} currentMode={currentMode} />
+        <NavbarForSearch onDestinationSelect={handleNavbarLocationSelect} onModeChange={setCurrentMode} currentMode={currentMode} />
       </div>
 
       {/* Close button - top right */}
